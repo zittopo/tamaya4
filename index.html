@@ -44,27 +44,55 @@
   <ul id="taskList"></ul>
 
   <script>
+    let tasks = [];
+
+    // 保存
+    function saveTasks() {
+      localStorage.setItem("tasks", JSON.stringify(tasks));
+    }
+
+    // 読み込み
+    function loadTasks() {
+      const data = localStorage.getItem("tasks");
+      if (data) {
+        tasks = JSON.parse(data);
+        tasks.forEach(task => renderTask(task));
+      }
+    }
+
+    // 表示
+    function renderTask(task) {
+      const li = document.createElement("li");
+      li.textContent = task;
+
+      const deleteBtn = document.createElement("button");
+      deleteBtn.textContent = "削除";
+      deleteBtn.onclick = function () {
+        li.remove();
+        tasks = tasks.filter(t => t !== task);
+        saveTasks();
+      };
+
+      li.appendChild(deleteBtn);
+      document.getElementById("taskList").appendChild(li);
+    }
+
+    // 追加
     function addTask() {
       const input = document.getElementById("taskInput");
       const text = input.value;
 
       if (text === "") return;
 
-      const li = document.createElement("li");
-      li.textContent = text;
-
-      const deleteBtn = document.createElement("button");
-      deleteBtn.textContent = "削除";
-      deleteBtn.onclick = function () {
-        li.remove();
-      };
-
-      li.appendChild(deleteBtn);
-
-      document.getElementById("taskList").appendChild(li);
+      tasks.push(text);
+      saveTasks();
+      renderTask(text);
 
       input.value = "";
     }
+
+    // ページ読み込み時
+    loadTasks();
   </script>
 
 </body>
