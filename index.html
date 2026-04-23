@@ -14,11 +14,10 @@
     }
     input {
       padding: 10px;
-      width: 200px;
+      margin: 5px;
     }
     button {
       padding: 10px;
-      margin-left: 5px;
     }
     ul {
       list-style: none;
@@ -28,9 +27,14 @@
       background: white;
       margin: 10px auto;
       padding: 10px;
-      width: 300px;
+      width: 350px;
       display: flex;
       justify-content: space-between;
+      align-items: center;
+    }
+    .overdue {
+      color: red;
+      font-weight: bold;
     }
   </style>
 </head>
@@ -38,7 +42,8 @@
 
   <h1>ToDoアプリ</h1>
 
-  <input id="taskInput" type="text" placeholder="やること入力">
+  <input id="taskInput" type="text" placeholder="やること">
+  <input id="dateInput" type="date">
   <button onclick="addTask()">追加</button>
 
   <ul id="taskList"></ul>
@@ -46,12 +51,10 @@
   <script>
     let tasks = [];
 
-    // 保存
     function saveTasks() {
       localStorage.setItem("tasks", JSON.stringify(tasks));
     }
 
-    // 読み込み
     function loadTasks() {
       const data = localStorage.getItem("tasks");
       if (data) {
@@ -60,38 +63,49 @@
       }
     }
 
-    // 表示
     function renderTask(task) {
       const li = document.createElement("li");
-      li.textContent = task;
+
+      const today = new Date().toISOString().split("T")[0];
+
+      const textSpan = document.createElement("span");
+      textSpan.textContent = `${task.text}（期限: ${task.date || "なし"}）`;
+
+      // 期限切れチェック
+      if (task.date && task.date < today) {
+        textSpan.classList.add("overdue");
+      }
 
       const deleteBtn = document.createElement("button");
       deleteBtn.textContent = "削除";
       deleteBtn.onclick = function () {
         li.remove();
-        tasks = tasks.filter(t => t !== task);
+        tasks = tasks.filter(t => !(t.text === task.text && t.date === task.date));
         saveTasks();
       };
 
+      li.appendChild(textSpan);
       li.appendChild(deleteBtn);
+
       document.getElementById("taskList").appendChild(li);
     }
 
-    // 追加
     function addTask() {
-      const input = document.getElementById("taskInput");
-      const text = input.value;
+      const text = document.getElementById("taskInput").value;
+      const date = document.getElementById("dateInput").value;
 
       if (text === "") return;
 
-      tasks.push(text);
-      saveTasks();
-      renderTask(text);
+      const task = { text: text, date: date };
 
-      input.value = "";
+      tasks.push(task);
+      saveTasks();
+      renderTask(task);
+
+      document.getElementById("taskInput").value = "";
+      document.getElementById("dateInput").value = "";
     }
 
-    // ページ読み込み時
     loadTasks();
   </script>
 
